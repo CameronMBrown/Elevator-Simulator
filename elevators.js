@@ -132,8 +132,6 @@ class Floor {
    * Considering passenger direction, elevator direction and elevator future trip length,
    * detirmines which elevator will most efficiently transport passengers on this floor.
    * Run this after a Passenger has pressed one of this floor's call buttons.
-   * @param {Building} building 
-   * @param {Number} dest destination floor
    * @param {String} going ("up" or "down")
    */
   getBestElevator(going){
@@ -193,8 +191,8 @@ class Floor {
      * able to most efficiently get passengers on this floor to their destination.
      * @param {Elevator} ele 
      * @param {Number} floor this floor number
-     * @param {Boolean} passed 
-     * @param {Boolean} completeTrip 
+     * @param {Boolean} passed distance added because elevator has passed floor
+     * @param {Boolean} completeTrip a complete trips distance will need to be added
      */
     function updateBestElevator(ele, floor, passed = false, completeTrip = false){
       /* 
@@ -246,9 +244,9 @@ class Floor {
   }
 
   /**
-   * Condidering the intended direction of the passengers on the given
-   * floor, returns a passenger appropriate for this trip.
-   * @param {Floor} floor 
+   * Condidering the intended direction of the elevator, returns a 
+   * passenger appropriate for this trip.
+   * @param {Elevator} ele 
    */
   getNextLoadingPassenger(ele){
     if(ele.direction === undefined){
@@ -274,6 +272,12 @@ class Floor {
     }
   }
 
+  /**
+   * Filters out passengers who's destination is not accessible by the elevator.
+   * Removes passenger from floor passengers if destination is accessible.
+   * @param {Elevator} ele 
+   * @returns Passenger object
+   */
   getNextValidPassenger(ele){
     if(ele.direction === "up"){
       for(let p of this.passengersUp){
@@ -318,12 +322,14 @@ class Elevator {
     //this.destination = 0; // next floor index to visit
     this.direction = undefined; //undefined = no where to go, "up" = up, "down" = down
     this.requested = []; // contain a unique list of floors to be visited.
+
     /* elevator related actions cannot happen concurrently
     events must happen exclusively one after another, hense 1 lock */
     this.action = semaphore(1);
     /* the doors of the elevator are wide enough for 2 people to pass
     through, so 2 concurrent load or unload events are possible */ 
     this.load = semaphore(2);
+
     // setup logging
     this.fileName = `Elevator-${this.shaft}.txt`
     fs.writeFileSync(this.fileName, ""); //overwrite (clear) any existing files
@@ -442,7 +448,6 @@ class Elevator {
    * @returns Floor object
    */
   getNextFloor(){
-    //this.updateDirection();
     let nextFloor;
     if(this.requested.length === 0){
       // elevator queue is empty, wait at the current floor.
@@ -626,6 +631,7 @@ class Passenger {
    * Clears passenger floor obj and removes passenger from floor's passengers
    * Sets passenger elevator obj
    * @param {Elevator} ele 
+   * @param {String} going "up" or "down"
    */
   async enterElevator(ele, going){
     if (ele.doorsOpen){
@@ -656,7 +662,6 @@ class Passenger {
    * Simulates passenger stepping out of passed elevator.
    * Calculates and reports total trip time
    * @param {Elevator} ele 
-   * @returns none
    */
   async exitElevator(ele){
     if(ele.doorsOpen){
@@ -672,7 +677,6 @@ class Passenger {
       ele.writeLog(msg);
     } else {
       console.log(`${this.name} cannot exit, doors are closed!`);
-      return;
     }
   }
 }
@@ -691,7 +695,7 @@ function weightedRandom(prob) {
 }
 
 /**
- * Generates a random floor number that isnt 0
+ * Simulation helper. Generates a random floor number that isnt 0
  * @param {Number} max highest floor 
  * @returns a floor number that isnt 0
  */
@@ -707,7 +711,11 @@ function anyExceptLobby(max){
   }
 }
 
-
+/**
+ * Simulation helper, generates a start and end floor for a Passenger
+ * @param {Number} max highest floor
+ * @returns start and end floors for a Passenger
+ */
 function generateTrip(max){
   let a = 0, b = 0;
   const lobbyProb = {"lobby":0.8, "floor":0.2}
@@ -732,6 +740,12 @@ function generateTrip(max){
   }
 }
 
+/**
+ * Runs the simulation. Creates building and elevator shafts.
+ * Then creates numPassengers Passengers on a regular interval.
+ * @param {Number} numPassengers 
+ * @param {Array} elevatorShafts list available floors in each elevator shaft
+ */
 async function elevatorSimulator(numPassengers, elevatorShafts){
   const hotel = new Building(elevatorShafts);
 

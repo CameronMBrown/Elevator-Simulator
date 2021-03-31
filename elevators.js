@@ -23,7 +23,7 @@ var fs = require('fs');
 const fnames = fs.readFileSync('fnames.txt').toString().split("\n");
 const lnames = fs.readFileSync('lnames.txt').toString().split("\n");
 
-// pauses execution in order to simulate a re-world event that takes some time
+// pauses execution in order to simulate a real-world event that takes some time
 function sleep(ms){ return new Promise(resolve => setTimeout(resolve, ms))}
 
 // used control order of events in a given context
@@ -40,12 +40,12 @@ function semaphore(numLocks){
         locks++;
         resolve();
       } else {
-        listen();
+        listen(resolve);
       }
     });
   }
 
-  async function lock(){
+  function lock(){
     // wait until all locks are released before resolving
     return new Promise((resolve) => {
       if(locks < numLocks){
@@ -343,7 +343,7 @@ class Elevator {
    * Opens the doors, loads and unloads passengers at this floor, closes the doors
    * @param {Floor} floor 
    */
-  async loadPassengers(floor){
+  async loadPassengers(floor){ // do I need async here?
     /*
     loading may need to be changed, if 2 elevators arrive at this floor
     then they may both try to load the same passenger causing a conflict.
@@ -356,7 +356,6 @@ class Elevator {
       await this.load(async () => {
         this.requested.splice(this.requested.indexOf(floor.index), 1); // remove this floor from elevator's requested floors
         this.updateDirection(); // elevator could change directions at this point
-
         // get passengers about to exit
         let exiting = [];
         for (let p of this.passengers){
@@ -450,7 +449,7 @@ class Elevator {
       const msg = `Elevator-${this.shaft} is waiting for passengers.`;
       console.log(msg);
       this.writeLog(msg);
-      return this.building.floors[this.currentFloor+1];
+      return this.building.floors[this.currentFloor+1]; //return the current floor
     } else {
       nextFloor = this.getNextClosestFloor();
     }
@@ -507,7 +506,8 @@ class Elevator {
     this.updateDirection();
     if(dest.index === this.currentFloor){
       //elevator already at the desired floor
-      this.loadPassengers(dest);
+      if(dest.passengersDown.length === 0 && dest.passengersUp.length === 0) return; //app exit condition
+      else this.loadPassengers(dest);
     } else {
       if (this.doorsOpen){
         //saftey check, this should not be possible.

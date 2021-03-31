@@ -446,7 +446,7 @@ class Elevator {
     let nextFloor;
     if(this.requested.length === 0){
       // elevator queue is empty, wait at the current floor.
-      const msg = `Elevator-${this.shaft} is waiting for passengers.`;
+      const msg = `Elevator-${this.shaft} - waiting for passengers.`;
       console.log(msg);
       this.writeLog(msg);
       return this.building.floors[this.currentFloor+1]; //return the current floor

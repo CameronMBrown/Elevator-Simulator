@@ -281,9 +281,7 @@ class Floor {
         if(checkVisit != -1){
           // this elevator does visit the passengers destination
           let passenger = p;
-          console.log(`before ${this.passengersUp.map(p => p.name)}`);
           this.passengersUp.splice(1, this.passengersUp.indexOf(p));
-          console.log(`after ${this.passengersUp.map(p => p.name)}, passenger ${passenger.name}`);
           return passenger;
         }
       }
@@ -294,9 +292,7 @@ class Floor {
         if(checkVisit != -1){
           // this elevator does visit the passengers destination
           let passenger = p;
-          console.log(`before ${this.passengersDown.map(p => p.name)}`);
           this.passengersDown.splice(1, this.passengersDown.indexOf(p));
-          console.log(`after ${this.passengersDown.map(p => p.name)}, passenger ${passenger.name}`);
           return passenger;
         } 
       }
@@ -359,9 +355,7 @@ class Elevator {
       // begin load/unload
       await this.load(async () => {
         this.requested.splice(this.requested.indexOf(floor.index), 1); // remove this floor from elevator's requested floors
-        console.log(`Elevator${this.shaft}, direction before ${this.direction}`);
         this.updateDirection(); // elevator could change directions at this point
-        console.log(`Elevator${this.shaft}, direction after ${this.direction}`);
 
         // get passengers about to exit
         let exiting = [];
@@ -377,7 +371,6 @@ class Elevator {
         }
 
         let nextPassenger = floor.getNextLoadingPassenger(this);
-        console.log(`nextPassenger ${nextPassenger}`);
         // while there are passengers on this floor, and the elevtor is not yet full, load passengers
         while((nextPassenger != false) && (this.passengers.length <= this.maxPassengers)){
           await nextPassenger.enterElevator(this, this.direction); // simulate passenger leaving floor, stepping on elevator

@@ -100,7 +100,7 @@ class Building {
     this.floors.push(new Floor(this, "basement", -1, false, true));
     this.floors.push(new Floor(this, "lobby", 0, true, true));
     for(let i=1; i < numFloors; i++){
-      this.floors.push(new Floor(this, `Floor ${i}`, i, true, true));
+      this.floors.push(new Floor(this, `floor ${i}`, i, true, true));
     }
     //assume the top floor is the "penthouse"
     this.floors.push(new Floor(this, "penthouse", numFloors, true, false))
@@ -132,6 +132,8 @@ class Floor {
    * Considering passenger direction, elevator direction and elevator future trip length,
    * detirmines which elevator will most efficiently transport passengers on this floor.
    * Run this after a Passenger has pressed one of this floor's call buttons.
+   * @param {Building} building 
+   * @param {Number} dest destination floor
    * @param {String} going ("up" or "down")
    */
   getBestElevator(going){
@@ -519,7 +521,7 @@ class Elevator {
         console.log("ERROR - cannot move elevator while doors are open!");
         return;
       } else {    
-        const msg = `Elevator ${this.shaft} - moving to floor ${dest.index}`;
+        const msg = `Elevator ${this.shaft} - moving to ${dest.name}`;
         console.log(msg);
         this.writeLog(msg);
         await sleep(500); // additional time it takes for the elevator to accelerate
@@ -538,7 +540,7 @@ class Elevator {
           this.writeLog(logFloor.toString());
         }
         await sleep(500);// additional time to decelerate
-        const msg2 = `Elevator ${this.shaft} - arrived at floor ${dest.index}`;
+        const msg2 = `Elevator ${this.shaft} - arrived at ${dest.name}`;
         console.log(msg2);
         this.writeLog(msg2); 
         this.loadPassengers(dest);
